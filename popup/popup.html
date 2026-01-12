@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Job Tracker</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <h1>Job Tracker</h1>
+      <div class="status-indicator" id="statusIndicator">
+        <span class="status-dot" id="statusDot"></span>
+        <span id="statusText">检查中...</span>
+      </div>
+    </header>
+
+    <div class="section" id="storageModeSection">
+      <div class="config-item">
+        <label for="storageMode">存储模式:</label>
+        <select id="storageMode" class="select-input">
+          <option value="local">本地存储（免费，无需Google账户）</option>
+          <option value="sheets">Google Sheets（需要Google账户）</option>
+        </select>
+        <small id="modeDescription">数据保存在浏览器本地，可随时导出为CSV文件</small>
+      </div>
+    </div>
+
+    <div class="section" id="authSection" style="display: none;">
+      <div class="auth-status" id="authStatus">
+        <p>需要连接Google账户</p>
+        <button id="authButton" class="btn btn-primary">连接Google</button>
+      </div>
+    </div>
+
+    <div class="section" id="configSection" style="display: none;">
+      <div class="config-item">
+        <label for="sheetId">Google Sheet ID:</label>
+        <input type="text" id="sheetId" placeholder="从Sheet URL中提取ID">
+        <small>例如: https://docs.google.com/spreadsheets/d/<strong>YOUR_SHEET_ID</strong>/edit</small>
+        <button id="saveConfigButton" class="btn btn-primary">保存配置</button>
+      </div>
+    </div>
+
+    <div class="section" id="recentSection" style="display: none;">
+      <h2>最近记录</h2>
+      <div id="recentJobs" class="recent-jobs">
+        <p class="empty-state">暂无记录</p>
+      </div>
+    </div>
+
+    <div class="section">
+      <button id="exportCSVButton" class="btn btn-secondary">导出为CSV</button>
+      <button id="syncButton" class="btn btn-secondary" style="display: none;">同步离线队列</button>
+      <button id="extractButton" class="btn btn-secondary">提取当前页面</button>
+    </div>
+
+    <div class="section">
+      <div id="message" class="message" style="display: none;"></div>
+    </div>
+  </div>
+
+  <script src="../utils/storage.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

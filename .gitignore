@@ -1,0 +1,28 @@
+# Chrome Extension
+*.crx
+*.pem
+*.zip
+
+# Icons (if you want to ignore placeholder icons)
+# icons/*.png
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+
+# Node modules (if you add any build tools)
+node_modules/
+
+# Environment files
+.env
+.env.local
