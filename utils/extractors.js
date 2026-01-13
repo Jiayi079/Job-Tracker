@@ -29,22 +29,81 @@ class JobExtractor {
    */
   static extractLinkedIn() {
     try {
-      // LinkedIn job posting page structure
-      const jobTitleElement = document.querySelector('h1.job-details-jobs-unified-top-card__job-title, h1[data-test-id="job-title"]');
-      const companyElement = document.querySelector('a.job-details-jobs-unified-top-card__company-name, a[data-test-id="job-poster"]');
-      
+      // LinkedIn job posting page structure - multiple selectors for different page layouts
+      const jobTitleSelectors = [
+        'h1.job-details-jobs-unified-top-card__job-title',
+        'h1[data-test-id="job-title"]',
+        'h1.jobs-details-top-card__job-title',
+        'h1.job-details-top-card__job-title',
+        'h1.job-details-top-card__job-title-text',
+        'h1[class*="job-title"]',
+        'h1[class*="JobTitle"]',
+        'h1.top-card-layout__title',
+        'h1.job-details__job-title',
+        // Fallback: look for h1 in the main content area
+        'main h1',
+        'div[class*="job-details"] h1',
+        'section[class*="job-details"] h1'
+      ];
+
+      const companySelectors = [
+        'a.job-details-jobs-unified-top-card__company-name',
+        'a[data-test-id="job-poster"]',
+        'a.jobs-details-top-card__company-name',
+        'a.job-details-top-card__company-name',
+        'a[class*="company-name"]',
+        'a[class*="CompanyName"]',
+        'span[class*="company-name"]',
+        'div[class*="company-name"]',
+        'a.top-card-layout__entity-info-subtitle',
+        // Fallback: look for company link or text near the title
+        'main a[href*="/company/"]',
+        'div[class*="job-details"] a[href*="/company/"]'
+      ];
+
+      // Try to find job title
+      let jobTitleElement = null;
+      for (const selector of jobTitleSelectors) {
+        jobTitleElement = document.querySelector(selector);
+        if (jobTitleElement && jobTitleElement.textContent.trim().length > 0) {
+          break;
+        }
+      }
+
       if (!jobTitleElement) {
+        console.log('LinkedIn: No job title found with any selector');
         return null;
       }
 
       const jobTitle = jobTitleElement.textContent.trim();
-      const company = companyElement ? companyElement.textContent.trim() : '';
+      
+      // Try to find company name
+      let company = '';
+      for (const selector of companySelectors) {
+        const element = document.querySelector(selector);
+        if (element && element.textContent.trim().length > 0) {
+          company = element.textContent.trim();
+          break;
+        }
+      }
+
+      // If still no company found, try to find it near the title
+      if (!company && jobTitleElement.parentElement) {
+        const parent = jobTitleElement.parentElement;
+        const companyLink = parent.querySelector('a[href*="/company/"]');
+        if (companyLink) {
+          company = companyLink.textContent.trim();
+        }
+      }
+
       const jdLink = window.location.href;
       const applicationDate = new Date().toISOString().split('T')[0]; // Today's date in YYYY-MM-DD
 
+      console.log('LinkedIn extraction successful:', { jobTitle, company, jdLink });
+
       return {
         jobTitle,
-        company,
+        company: company || '未知公司',
         jdLink,
         applicationDate,
         status: '已申请',

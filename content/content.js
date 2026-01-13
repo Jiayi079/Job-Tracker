@@ -36,13 +36,22 @@
   async function extractJobData() {
     try {
       // Check if this is likely a job page
-      if (!JobExtractor.isJobPage()) {
+      const isJobPage = JobExtractor.isJobPage();
+      console.log('Job Tracker: Checking page:', {
+        url: window.location.href,
+        isJobPage: isJobPage
+      });
+
+      if (!isJobPage) {
+        console.log('Job Tracker: Page does not appear to be a job posting page');
         isProcessing = false;
         return;
       }
 
       // Extract job data
       extractedData = JobExtractor.extract();
+
+      console.log('Job Tracker: Extraction result:', extractedData);
 
       if (extractedData) {
         // Check if we've already processed this job
@@ -56,6 +65,11 @@
           // Show notification to user
           showExtractionNotification(extractedData);
         }
+      } else {
+        console.log('Job Tracker: No data extracted. This might be because:');
+        console.log('1. The page structure has changed');
+        console.log('2. The selectors need to be updated');
+        console.log('3. The page is still loading');
       }
     } catch (error) {
       console.error('Error extracting job data:', error);
@@ -226,8 +240,21 @@
   // Listen for messages from popup or background
   chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === 'extractNow') {
+      // Reset processing flag to allow manual extraction
+      isProcessing = false;
       extractJobData().then(() => {
-        sendResponse({ success: true, data: extractedData });
+        sendResponse({ 
+          success: !!extractedData, 
+          data: extractedData,
+          message: extractedData ? '提取成功' : '未检测到工作信息，请检查页面是否已完全加载'
+        });
+      }).catch(error => {
+        console.error('Extraction error:', error);
+        sendResponse({ 
+          success: false, 
+          data: null,
+          error: error.message 
+        });
       });
       return true; // Keep channel open for async response
     }

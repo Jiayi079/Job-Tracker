@@ -371,7 +371,8 @@ async function handleExtract() {
       showMessage('已提取工作信息，请查看页面通知', 'success');
       await loadRecentJobs();
     } else {
-      showMessage('未检测到工作信息', 'info');
+      const errorMsg = response?.message || response?.error || '未检测到工作信息';
+      showMessage(errorMsg + '。提示：请确保页面已完全加载，或尝试刷新页面后再试', 'info');
     }
   } catch (error) {
     showMessage('提取失败: ' + error.message, 'error');

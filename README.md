@@ -69,7 +69,16 @@ Job-Tracker/
 - 数据自动同步到Google Sheets
 - 支持多设备同步
 
-### 3. 配置Google Cloud项目（仅Google Sheets模式需要）
+### 3. 首次加载扩展（获取扩展ID，仅Google Sheets模式需要）
+
+**重要**：创建OAuth凭据需要扩展ID，所以需要先加载扩展。
+
+1. 打开Chrome浏览器，访问 `chrome://extensions/`
+2. 启用 "开发者模式"（右上角）
+3. 点击 "加载已解压的扩展程序"，选择项目根目录
+4. **获取扩展ID**：加载后，在扩展列表中找到你的扩展，复制下方的"ID"（32位字符串），这就是"内容 ID"
+
+### 4. 配置Google Cloud项目（仅Google Sheets模式需要）
 
 1. 访问 [Google Cloud Console](https://console.cloud.google.com/)
 2. 创建新项目或选择现有项目
@@ -80,12 +89,14 @@ Job-Tracker/
 4. 配置OAuth 2.0凭据：
    - 导航到 "APIs & Services" > "Credentials"
    - 点击 "Create Credentials" > "OAuth client ID"
-   - 选择 "Chrome App" 作为应用类型
+   - 应用类型选择 **"Chrome 扩展程序"**（Chrome Extension）
+   - **内容 ID**：粘贴你在步骤3获取的扩展ID
    - 复制生成的 **Client ID**
 5. 更新 `manifest.json`：
    - 将 `YOUR_CLIENT_ID.apps.googleusercontent.com` 替换为你的实际Client ID
+   - **更新后需要重新加载扩展**（在 `chrome://extensions/` 点击刷新按钮）
 
-### 4. 创建Google Sheet（仅Google Sheets模式需要）
+### 5. 创建Google Sheet（仅Google Sheets模式需要）
 
 1. 创建一个新的Google Sheet
 2. 设置表头（第一行）：
@@ -99,13 +110,9 @@ Job-Tracker/
    - URL格式: `https://docs.google.com/spreadsheets/d/SHEET_ID/edit`
    - 复制 `SHEET_ID` 部分
 
-### 5. 加载扩展
+### 6. 重新加载扩展（如果已更新manifest.json）
 
-1. 打开Chrome浏览器
-2. 访问 `chrome://extensions/`
-3. 启用 "开发者模式"（右上角）
-4. 点击 "加载已解压的扩展程序"
-5. 选择项目根目录
+如果更新了 `manifest.json` 中的 Client ID，需要在 `chrome://extensions/` 页面点击扩展的刷新按钮重新加载。
 
 ## 使用方法
 
@@ -181,13 +188,23 @@ A: **有！** 使用"本地存储模式"，完全免费且无需Google账户。�
 A: 数据保存在Chrome浏览器本地存储中，关闭浏览器不会丢失。但如果清除浏览器数据会丢失，建议定期导出CSV备份。
 
 ### Q: 认证失败怎么办？（仅Google Sheets模式）
-A: 检查manifest.json中的Client ID是否正确，确保Google Cloud项目中已启用Sheets API。
+A: 
+- **如果显示"Error 403: access_denied"**：这是因为OAuth同意屏幕处于"测试"模式。解决方法：
+  1. 访问 Google Cloud Console > "APIs & Services" > "OAuth consent screen"
+  2. 滚动到底部，点击"发布应用"（PUBLISH APP）按钮
+  3. 等待几分钟后重新尝试连接
+- **其他认证问题**：检查manifest.json中的Client ID是否正确，确保Google Cloud项目中已启用Sheets API。
 
 ### Q: 无法保存到Sheet？（仅Google Sheets模式）
 A: 检查Sheet ID是否正确，确保Sheet已共享给认证的Google账户。
 
 ### Q: 检测不到工作信息？
-A: 某些网站可能需要手动点击"提取当前页面"按钮。如果仍然失败，可能是网站结构发生了变化。
+A: 
+- **确保页面已完全加载**：等待页面加载完成后再点击"提取当前页面"
+- **检查URL**：确保你在工作详情页面（不是列表页）
+- **查看控制台日志**：按F12打开开发者工具，查看Console中的"Job Tracker"日志
+- **手动提取**：点击扩展图标，点击"提取当前页面"按钮
+- **如果仍然失败**：可能是网站结构发生了变化，需要更新 `utils/extractors.js` 中的选择器
 
 ### Q: 如何导出数据？
 A: 点击扩展图标，点击"导出为CSV"按钮即可。导出的CSV文件可以用Excel、Google Sheets等打开。
