@@ -40,10 +40,23 @@ class JobExtractor {
         'h1[class*="JobTitle"]',
         'h1.top-card-layout__title',
         'h1.job-details__job-title',
-        // Fallback: look for h1 in the main content area
+        // Application page selectors
+        'h1[class*="jobs-unified-top-card"]',
+        'h1[class*="jobs-top-card"]',
+        'h2[class*="job-title"]',
+        'h2[class*="JobTitle"]',
+        // Fallback: look for h1/h2 in the main content area
         'main h1',
+        'main h2',
         'div[class*="job-details"] h1',
-        'section[class*="job-details"] h1'
+        'div[class*="job-details"] h2',
+        'section[class*="job-details"] h1',
+        'section[class*="job-details"] h2',
+        // More generic fallbacks
+        'div[class*="jobs-unified"] h1',
+        'div[class*="jobs-unified"] h2',
+        'div[class*="top-card"] h1',
+        'div[class*="top-card"] h2'
       ];
 
       const companySelectors = [
@@ -56,9 +69,16 @@ class JobExtractor {
         'span[class*="company-name"]',
         'div[class*="company-name"]',
         'a.top-card-layout__entity-info-subtitle',
+        // Application page selectors
+        'a[class*="jobs-unified-top-card"]',
+        'a[class*="jobs-top-card"]',
         // Fallback: look for company link or text near the title
         'main a[href*="/company/"]',
-        'div[class*="job-details"] a[href*="/company/"]'
+        'div[class*="job-details"] a[href*="/company/"]',
+        'div[class*="jobs-unified"] a[href*="/company/"]',
+        'div[class*="top-card"] a[href*="/company/"]',
+        // Even more generic - any company link
+        'a[href*="/company/"]'
       ];
 
       // Try to find job title
@@ -230,9 +250,31 @@ class JobExtractor {
     const pathContainsJob = jobKeywords.some(keyword => pathname.includes(keyword));
     const titleContainsJob = jobKeywords.some(keyword => title.includes(keyword));
 
-    // LinkedIn specific
+    // LinkedIn specific - expanded patterns
     if (window.location.hostname.includes('linkedin.com')) {
-      return pathname.includes('/jobs/view/') || pathname.includes('/jobs/');
+      // Check for various LinkedIn job page patterns
+      const linkedInJobPatterns = [
+        '/jobs/view/',
+        '/jobs/collections/',
+        '/jobs/search/',
+        '/jobs/',
+        '/job/',
+        '/easy-apply/',
+        '/apply/'
+      ];
+      
+      // If URL matches LinkedIn job patterns, it's likely a job page
+      if (linkedInJobPatterns.some(pattern => pathname.includes(pattern))) {
+        return true;
+      }
+      
+      // Also check if we're on LinkedIn and can find job-related elements
+      // This helps catch application pages and other job-related pages
+      const hasJobTitle = document.querySelector('h1[class*="job"], h1[class*="Job"], h2[class*="job"], h2[class*="Job"]');
+      const hasCompanyLink = document.querySelector('a[href*="/company/"]');
+      if (hasJobTitle || hasCompanyLink) {
+        return true;
+      }
     }
 
     // Indeed specific

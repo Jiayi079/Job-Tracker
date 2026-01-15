@@ -173,9 +173,26 @@
    - 查找 "Job Tracker" 相关的日志信息
    - 这些日志会告诉你提取失败的原因
 
-4. **手动调试**
-   - 在Console中输入：`document.querySelector('h1')` 查看是否能找到标题
-   - 如果找不到，说明页面结构可能已变化，需要更新 `utils/extractors.js` 中的选择器
+4. **手动调试（重要）**
+   - 按F12打开开发者工具
+   - 切换到Console标签页
+   - 点击扩展的"提取当前页面"按钮
+   - 查看Console中的"Job Tracker"日志，会显示：
+     - 找到的所有H1和H2元素
+     - 找到的公司链接
+     - 提取失败的原因
+   - 在Console中输入以下命令进行测试：
+     ```javascript
+     // 测试是否能找到标题
+     document.querySelector('h1')
+     document.querySelector('h2')
+     
+     // 测试是否能找到公司链接
+     document.querySelector('a[href*="/company/"]')
+     
+     // 查看页面的所有H1元素
+     Array.from(document.querySelectorAll('h1')).map(h => h.textContent.trim())
+     ```
 
 5. **临时解决方案**
    - 如果自动提取失败，可以手动复制工作信息

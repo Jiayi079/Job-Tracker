@@ -32,17 +32,19 @@
 
   /**
    * Extract job data from current page
+   * @param {boolean} forceExtract - If true, skip isJobPage check (for manual extraction)
    */
-  async function extractJobData() {
+  async function extractJobData(forceExtract = false) {
     try {
-      // Check if this is likely a job page
-      const isJobPage = JobExtractor.isJobPage();
+      // Check if this is likely a job page (unless forced)
+      const isJobPage = forceExtract || JobExtractor.isJobPage();
       console.log('Job Tracker: Checking page:', {
         url: window.location.href,
-        isJobPage: isJobPage
+        isJobPage: isJobPage,
+        forceExtract: forceExtract
       });
 
-      if (!isJobPage) {
+      if (!isJobPage && !forceExtract) {
         console.log('Job Tracker: Page does not appear to be a job posting page');
         isProcessing = false;
         return;
@@ -52,6 +54,17 @@
       extractedData = JobExtractor.extract();
 
       console.log('Job Tracker: Extraction result:', extractedData);
+      
+      // If extraction failed, try to find what's on the page
+      if (!extractedData) {
+        console.log('Job Tracker: No data extracted. Debugging info:');
+        const allH1 = document.querySelectorAll('h1');
+        const allH2 = document.querySelectorAll('h2');
+        const companyLinks = document.querySelectorAll('a[href*="/company/"]');
+        console.log('Found H1 elements:', Array.from(allH1).map(h => ({ text: h.textContent.trim().substring(0, 50), classes: h.className })));
+        console.log('Found H2 elements:', Array.from(allH2).map(h => ({ text: h.textContent.trim().substring(0, 50), classes: h.className })));
+        console.log('Found company links:', Array.from(companyLinks).map(a => ({ text: a.textContent.trim().substring(0, 50), href: a.href })));
+      }
 
       if (extractedData) {
         // Check if we've already processed this job
@@ -70,6 +83,7 @@
         console.log('1. The page structure has changed');
         console.log('2. The selectors need to be updated');
         console.log('3. The page is still loading');
+        console.log('4. You might be on a page that doesn\'t contain job information');
       }
     } catch (error) {
       console.error('Error extracting job data:', error);
@@ -242,11 +256,12 @@
     if (request.action === 'extractNow') {
       // Reset processing flag to allow manual extraction
       isProcessing = false;
-      extractJobData().then(() => {
+      // Force extraction when manually triggered (skip isJobPage check)
+      extractJobData(true).then(() => {
         sendResponse({ 
           success: !!extractedData, 
           data: extractedData,
-          message: extractedData ? '提取成功' : '未检测到工作信息，请检查页面是否已完全加载'
+          message: extractedData ? '提取成功' : '未检测到工作信息。请查看浏览器控制台（F12）获取详细调试信息'
         });
       }).catch(error => {
         console.error('Extraction error:', error);
